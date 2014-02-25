@@ -1,0 +1,111 @@
+#!/bin/bash
+#
+# A better processing sketch invoker
+# By Kalev Kalda Sikes
+
+processing_path=/opt/processing
+pandroid_path=/opt/processing-android
+CLASSPATH="$processing_path/core/library/*:$processing_path/lib/*"
+export CLASSPATH
+#echo -en "classpath: $CLASSPATH\n"
+
+#paramters
+android=false
+debug=false
+output=/tmp/asdf
+runmode=run
+
+#display help for this script
+if [ $# -eq 0 ]; then
+	echo -en "i should be showing some help text here >_<\n"
+
+# processing-java's help
+elif [ $1 == "--help" ] ||
+		[ $1 == "-h" ]; then
+	echo -en "Showing processing-java's help:"
+	java processing.mode.java.Commander --help
+
+# processing-android's help
+elif [ $1 == "--android-help" ] ||
+		[ $1 == "-ah" ]; then
+	export CLASSPATH="$CLASSPATH:$pandroid_path/bin"
+	echo -en "Showing processing-android's help:"
+	java processing.mode.android.Commander --help
+
+# run a sketch
+else
+	#get flags
+	while [ $# -gt 1 ]; do
+		if [ $1 == "--debug" ]; then
+			debug=true
+		else
+			#build, run, or present?
+			[[ $1 =~ b ]] && runmode=build
+			[[ $1 =~ r ]] && runmode=run
+			[[ $1 =~ p ]] && runmode=present
+			#android?
+			[[ $1 =~ a ]] && android=true
+			#emulator or device?
+			[[ $1 =~ d ]] && runmode=device
+			[[ $1 =~ e ]] && runmode=emulator
+			#output?
+			if [[ $1 =~ o ]] || [ $1 == --output ]; then
+				shift
+				output="$1"
+			fi
+		fi
+		shift
+	done
+
+	#get sketch
+	sketch=$(readlink -f $1)
+	shift
+
+	#debug output
+	if [ "$debug" = true ]; then
+		echo -en "android: $android\n"
+		echo -en "runmode: $runmode\n"
+		echo -en "output: $output\n"
+		echo -en "sketch: $sketch\n"
+		echo -en "args: $@\n"
+	fi
+
+	#validate sketch directory
+	if [ ! -d "$sketch" ]; then
+		echo -en "Error: sketch \"$sketch\" is not an existing directory\n"
+		exit 1
+	fi
+
+	#android mode
+	if [ "$android" = true ]; then
+		#get run arg
+		runarg=--run
+		if [ "$runmode" = "device" ]; then
+			runarg=--run=d
+		elif [ "$runmode" = "emulator" ]; then
+			runarg=--run=e
+		fi
+		#add android mode's classpath entry
+		export CLASSPATH="$pandroid_path/mode/*:$CLASSPATH"
+		#change to processing-android's directory
+		cd $pandroid_path
+		#run the sketch
+		java processing.mode.android.Commander \
+			$runarg --force --output=$output --sketch=$sketch
+			
+	#java mode
+	else
+		#get run arg
+		runarg=--run
+		if [ "$runmode" = "build" ]; then
+			runarg=--build
+		elif [ "$runmode" = "present" ]; then
+			runarg=--present
+		fi
+		#change to processing-java's directory
+		cd $processing_path
+		#run the sketch
+		java processing.mode.java.Commander \
+			$runarg --force --output=$output --sketch=$sketch
+	fi
+fi
