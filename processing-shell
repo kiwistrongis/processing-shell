@@ -12,7 +12,7 @@ export CLASSPATH
 #paramters
 android=false
 debug=false
-output=/tmp/asdf
+output=/tmp/processing-objects
 runmode=run
 
 #display help for this script
@@ -28,7 +28,7 @@ elif [ $1 == "--help" ] ||
 # processing-android's help
 elif [ $1 == "--android-help" ] ||
 		[ $1 == "-ah" ]; then
-	export CLASSPATH="$CLASSPATH:$pandroid_path/bin"
+	export CLASSPATH="$CLASSPATH:$pandroid_path/mode/*"
 	echo -en "Showing processing-android's help:"
 	java processing.mode.android.Commander --help
 
@@ -38,7 +38,12 @@ else
 	while [ $# -gt 1 ]; do
 		if [ $1 == "--debug" ]; then
 			debug=true
+		elif [ $1 == "--output" ]; then
+			shift
+			output="$1"
 		else
+			#debug?
+			[[ $1 =~ v ]] && debug=true
 			#build, run, or present?
 			[[ $1 =~ b ]] && runmode=build
 			[[ $1 =~ r ]] && runmode=run
@@ -49,7 +54,7 @@ else
 			[[ $1 =~ d ]] && runmode=device
 			[[ $1 =~ e ]] && runmode=emulator
 			#output?
-			if [[ $1 =~ o ]] || [ $1 == --output ]; then
+			if [[ $1 =~ o ]]; then
 				shift
 				output="$1"
 			fi
@@ -84,15 +89,22 @@ else
 			runarg=--run=d
 		elif [ "$runmode" = "emulator" ]; then
 			runarg=--run=e
+		elif [ "$runmode" = "build" ]; then
+			runarg=--build
 		fi
 		#add android mode's classpath entry
 		export CLASSPATH="$pandroid_path/mode/*:$CLASSPATH"
 		#change to processing-android's directory
 		cd $pandroid_path
+		#put together command
+		command="java processing.mode.android.Commander \
+			$runarg --force --output=$output --sketch=$sketch"
+		#debug command
+		if [ "$debug" = true ]; then
+			echo -en "command: $command\n"
+		fi
 		#run the sketch
-		java processing.mode.android.Commander \
-			$runarg --force --output=$output --sketch=$sketch
-			
+		$command
 	#java mode
 	else
 		#get run arg
@@ -102,8 +114,6 @@ else
 		elif [ "$runmode" = "present" ]; then
 			runarg=--present
 		fi
-		#change to processing-java's directory
-		cd $processing_path
 		#run the sketch
 		java processing.mode.java.Commander \
 			$runarg --force --output=$output --sketch=$sketch
