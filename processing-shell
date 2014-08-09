@@ -34,6 +34,7 @@ elif [ $1 == "--android-help" ] ||
 
 # run a sketch
 else
+	echo -en "Parsing flags\n"
 	#get flags
 	while [ $# -gt 1 ]; do
 		if [ $1 == "--debug" ]; then
@@ -63,7 +64,8 @@ else
 	done
 
 	#get sketch
-	sketch=$(readlink -f $1)
+	echo -en "Getting sketch path\n"
+	sketch="$(readlink -f ./$1)"
 	shift
 
 	#debug output
@@ -104,6 +106,7 @@ else
 			echo -en "command: $command\n"
 		fi
 		#run the sketch
+		echo -en "Running processing-android\n"
 		$command
 	#java mode
 	else
@@ -115,6 +118,7 @@ else
 			runarg=--present
 		fi
 		#run the sketch
+		echo -en "Running processing-java\n"
 		java processing.mode.java.Commander \
 			$runarg --force --output=$output --sketch=$sketch
 	fi
