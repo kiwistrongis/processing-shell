@@ -1,4 +1,4 @@
 #!/bin/bash
 
-ln -s processing-shell /usr/bin/processing-shell
-ln -s processing-shell /usr/bin/pshell
+install -m 755 processing-shell /usr/local/bin/processing-shell
+ln -sf /usr/local/bin/processing-shell /usr/local/bin/pshell
