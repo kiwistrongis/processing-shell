@@ -1,6 +1,6 @@
-void setup(){
-	SMT.init( this);
-}
+import vialab.SMT.*;
+
+void setup(){}
 
 void draw(){
 	background( 25);
@@ -20,12 +20,15 @@ public int sketchHeight(){
 }
 
 public String sketchRenderer(){
+	//all of these work :)
+	//return JAVA2D;
+	//return P2D;
 	//return P3D;
-	//return SMT.RENDERER;
+	//return vialab.SMT.RENDERER;
 	return CustomRenderer.class.getName();
 }
 
-class CustomRenderer extends PGraphics3D{
+static class CustomRenderer extends PGraphics3D{
 	public CustomRenderer(){
 		super();}
 }
