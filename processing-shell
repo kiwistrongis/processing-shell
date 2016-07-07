@@ -3,7 +3,7 @@
 # A better processing sketch invoker
 # By Kalev Kalda Sikes
 
-#default config
+# default config
 processing_path=/opt/processing
 pandroid_path=/opt/processing-android
 android=false
@@ -13,17 +13,20 @@ runmode=run
 bb_enabled=false
 bb_bridge=primus
 
-#load user options
-# there's probably a much better way to do this
+# load user options
+#  there's probably a much better way to do this
 user_config="$HOME/.config/pshell/config"
 [[ -f $user_config ]] && source $user_config
 
-#set classpath for java
-CLASSPATH="$processing_path/core/library/*:$processing_path/lib/*"
+# set classpath for java
+CLASSPATH="$CLASSPATH:\
+$processing_path/core/library/*:\
+$processing_path/lib/*:\
+$processing_path/modes/java/mode/*"
 export CLASSPATH
 #echo -en "classpath: $CLASSPATH\n"
 
-#display help for this script
+# display help for this script
 if [ $# -eq 0 ]; then
 	echo -en "i should be showing some help text here >_<\n"
 
@@ -51,18 +54,18 @@ else
 			shift
 			output="$1"
 		else
-			#debug?
+			# debug?
 			[[ $1 =~ v ]] && debug=true
-			#build, run, or present?
+			# build, run, or present?
 			[[ $1 =~ b ]] && runmode=build
 			[[ $1 =~ r ]] && runmode=run
 			[[ $1 =~ p ]] && runmode=present
-			#android?
+			# android?
 			[[ $1 =~ a ]] && android=true
-			#emulator or device?
+			# emulator or device?
 			[[ $1 =~ d ]] && runmode=device
 			[[ $1 =~ e ]] && runmode=emulator
-			#output?
+			# output?
 			if [[ $1 =~ o ]]; then
 				shift
 				output="$1"
@@ -71,12 +74,12 @@ else
 		shift
 	done
 
-	#get sketch
+	# get sketch
 	echo -en "Getting sketch path\n"
 	sketch="$(readlink -f ./$1)"
 	shift
 
-	#debug output
+	# debug output
 	if [ "$debug" = true ]; then
 		echo -en "android: $android\n"
 		echo -en "runmode: $runmode\n"
@@ -87,15 +90,15 @@ else
 		echo -en "args: $@\n"
 	fi
 
-	#validate sketch directory
+	# validate sketch directory
 	if [ ! -d "$sketch" ]; then
 		echo -en "Error: sketch \"$sketch\" is not an existing directory\n"
 		exit 1
 	fi
 
-	#android mode
+	# android mode
 	if [ "$android" = true ]; then
-		#get run arg
+		# get run arg
 		runarg=--run
 		if [ "$runmode" = "device" ]; then
 			runarg=--run=d
@@ -104,41 +107,41 @@ else
 		elif [ "$runmode" = "build" ]; then
 			runarg=--build
 		fi
-		#add android mode's classpath entry
+		# add android mode's classpath entry
 		export CLASSPATH="$pandroid_path/mode/*:$CLASSPATH"
-		#change to processing-android's directory
+		# change to processing-android's directory
 		cd $pandroid_path
-		#put together command
+		# put together command
 		command="java processing.mode.android.Commander \
-			$runarg --force --output=$output --sketch=$sketch"
-		#debug command
+			--force --output=$output --sketch=$sketch $runarg"
+		# debug command
 		if [ "$debug" = true ]; then
 			echo -en "command: $command\n"
 		fi
-		#run the sketch
+		# run the sketch
 		echo -en "Running processing-android\n"
 		$command
-	#java mode
+	# java mode
 	else
-		#get run arg
+		# get run arg
 		runarg=--run
 		if [ "$runmode" = "build" ]; then
 			runarg=--build
 		elif [ "$runmode" = "present" ]; then
 			runarg=--present
 		fi
-		#put together command
+		# put together command
 		command="java processing.mode.java.Commander \
-			$runarg --force --output=$output --sketch=$sketch"
-		#use bumblebee, if enabled
+			--force --output=$output --sketch=$sketch $runarg"
+		# use bumblebee, if enabled
 		if [ "$bb_enabled" = true ]; then
 			command="optirun -b $bb_bridge $command"
 		fi
-		#debug command
+		# debug command
 		if [ "$debug" = true ]; then
 			echo -en "command: $command\n"
 		fi
-		#run the sketch
+		# run the sketch
 		echo -en "Running processing-java\n"
 		$command
 	fi
